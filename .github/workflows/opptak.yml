@@ -1,0 +1,33 @@
+name: publish-opptak
+on:
+  schedule:
+    # every 30 min, 16:00-23:30 UTC (= 18:00-01:30 Oslo) - webinars are evenings
+    - cron: "*/30 16-23 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 = only report what would be published, no upload"
+        required: false
+        default: "1"
+permissions:
+  contents: write
+concurrency:
+  group: publish-opptak
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: publish newest Zoom recording
+        env:
+          ZOOM_ACCOUNT_ID: ${{ secrets.ZOOM_ACCOUNT_ID }}
+          ZOOM_CLIENT_ID: ${{ secrets.ZOOM_CLIENT_ID }}
+          ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || '' }}
+        run: python publish_opptak.py
