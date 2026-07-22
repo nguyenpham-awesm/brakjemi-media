@@ -1,7 +1,7 @@
-name: publish-opptak
+name: publish-replay
 on:
   schedule:
-    # every 30 min, 16:00-23:30 UTC (= 18:00-01:30 Oslo) - webinars are evenings
+    # setup script replaces */30 16-23 * * * (default: every 30 min during evening hours UTC)
     - cron: "*/30 16-23 * * *"
   workflow_dispatch:
     inputs:
@@ -11,8 +11,10 @@ on:
         default: "1"
 permissions:
   contents: write
+  actions: write   # disable its own schedule after publish / give-up
+  issues: write    # open an issue if it gives up at T+220
 concurrency:
-  group: publish-opptak
+  group: publish-replay
   cancel-in-progress: false
 jobs:
   publish:
@@ -29,5 +31,15 @@ jobs:
           ZOOM_CLIENT_ID: ${{ secrets.ZOOM_CLIENT_ID }}
           ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
+          MIN_DATE: "2026-07-22"
+          MEETING_ID: ""
+          MATCH_FROM: ""
+          MATCH_TO: ""
+          STOP_AFTER_PUBLISH: "0"
+          WEBINAR_START: ""
+          GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
+          RELEASE_TAG: "opptak"
+          ASSET_NAME: "magnetmetoden-opptak.mp4"
           DRY_RUN: ${{ github.event.inputs.dry_run || '' }}
-        run: python publish_opptak.py
+        run: python publish_recording.py
