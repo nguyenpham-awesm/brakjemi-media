@@ -1,7 +1,7 @@
 name: publish-replay
 on:
   schedule:
-    # setup script replaces */30 16-23 * * * (default: every 30 min during evening hours UTC)
+    # every 30 min during evening hours UTC (covers Oslo 18:00-01:00 webinars)
     - cron: "*/30 16-23 * * *"
   workflow_dispatch:
     inputs:
@@ -11,35 +11,47 @@ on:
         default: "1"
 permissions:
   contents: write
-  actions: write   # disable its own schedule after publish / give-up
-  issues: write    # open an issue if it gives up at T+220
+  actions: write
+  issues: write
 concurrency:
-  group: publish-replay
+  group: publish-replay-${{ matrix.tag }}
   cancel-in-progress: false
 jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Main free webinar (Wed 22 Jul) -> go.brakjemi.com/opptak
+          - meeting_id: "81009725890"
+            tag: "opptak"
+            asset: "magnetmetoden-opptak.mp4"
+          # Advanced Training (Sun 26 Jul) -> go.brakjemi.com/avansert-opptak
+          - meeting_id: "83508521196"
+            tag: "avansert"
+            asset: "avansert-opptak.mp4"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: publish newest Zoom recording
+      - name: publish locked Zoom recording (${{ matrix.tag }})
         env:
           ZOOM_ACCOUNT_ID: ${{ secrets.ZOOM_ACCOUNT_ID }}
           ZOOM_CLIENT_ID: ${{ secrets.ZOOM_CLIENT_ID }}
           ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
-          MIN_DATE: "2026-07-22"
-          MEETING_ID: ""
+          MIN_DATE: "2026-07-20"
+          MEETING_ID: ${{ matrix.meeting_id }}
           MATCH_FROM: ""
           MATCH_TO: ""
           STOP_AFTER_PUBLISH: "0"
           WEBINAR_START: ""
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
-          RELEASE_TAG: "opptak"
-          ASSET_NAME: "magnetmetoden-opptak.mp4"
+          RELEASE_TAG: ${{ matrix.tag }}
+          ASSET_NAME: ${{ matrix.asset }}
           DRY_RUN: ${{ github.event.inputs.dry_run || '' }}
         run: python publish_recording.py
