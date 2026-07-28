@@ -1,0 +1,49 @@
+name: publish-replay-avansert
+# ADVANCED TRAINING -> release tag "avansert" -> go.brakjemi.com/avansert-opptak
+# Separate workflow from opptak.yml on purpose: each session needs its own scan
+# gate state and its own give-up/disable, so a miss on one can never silence the
+# other (a shared matrix workflow would).
+# Advanced Training: Sunday 9 August 2026, 19:00 Europe/Oslo (= 17:00 UTC)
+on:
+  schedule:
+    - cron: "*/5 18-20 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 = only report what would be published, no upload"
+        required: false
+        default: "1"
+permissions:
+  contents: write
+  actions: write
+  issues: write
+concurrency:
+  group: publish-replay-avansert
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: publish advanced training recording (avansert)
+        env:
+          ZOOM_ACCOUNT_ID: ${{ secrets.ZOOM_ACCOUNT_ID }}
+          ZOOM_CLIENT_ID: ${{ secrets.ZOOM_CLIENT_ID }}
+          ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
+          MIN_DATE: "2026-08-09"
+          MEETING_ID: ""
+          MATCH_FROM: "2026-08-09T16:30:00Z"
+          MATCH_TO: "2026-08-09T23:00:00Z"
+          WEBINAR_START: "2026-08-09T19:00:00+02:00"
+          STOP_AFTER_PUBLISH: "0"
+          GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
+          RELEASE_TAG: "avansert"
+          ASSET_NAME: "avansert-opptak.mp4"
+          DRY_RUN: ${{ github.event.inputs.dry_run || '' }}
+        run: python publish_recording.py
