@@ -1,8 +1,13 @@
-name: publish-replay
+name: publish-replay-opptak
+# MAIN FREE WEBINAR -> release tag "opptak" -> go.brakjemi.com/opptak
+# Event-anchored escalating scan (see webinar-replay-pipeline skill):
+#   T+0..60 wait | T+60..90 every 15m | T+90..120 every 10m | T+120..220 every 5m
+#   > T+220 -> open an issue + disable this schedule (operator signal)
+# Webinar: Thursday 6 August 2026, 19:00 Europe/Oslo (= 17:00 UTC)
 on:
   schedule:
-    # every 30 min during evening hours UTC (covers Oslo 18:00-01:00 webinars)
-    - cron: "*/30 16-23 * * *"
+    # cron covers T+60..T+220 in UTC (18:00-20:40); the in-script gate enforces cadence
+    - cron: "*/5 18-20 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -14,44 +19,38 @@ permissions:
   actions: write
   issues: write
 concurrency:
-  group: publish-replay-${{ matrix.tag }}
+  group: publish-replay-opptak
   cancel-in-progress: false
 jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Main free webinar (Wed 22 Jul) -> go.brakjemi.com/opptak
-          - meeting_id: "81009725890"
-            tag: "opptak"
-            asset: "magnetmetoden-opptak.mp4"
-          # Advanced Training (Sun 26 Jul) -> go.brakjemi.com/avansert-opptak
-          - meeting_id: "83508521196"
-            tag: "avansert"
-            asset: "avansert-opptak.mp4"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: publish locked Zoom recording (${{ matrix.tag }})
+      - name: publish webinar recording (opptak)
         env:
           ZOOM_ACCOUNT_ID: ${{ secrets.ZOOM_ACCOUNT_ID }}
           ZOOM_CLIENT_ID: ${{ secrets.ZOOM_CLIENT_ID }}
           ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
-          MIN_DATE: "2026-07-20"
-          MEETING_ID: ${{ matrix.meeting_id }}
-          MATCH_FROM: ""
-          MATCH_TO: ""
+          MIN_DATE: "2026-08-06"
+          # No strict MEETING_ID lock on purpose: if Fredrik starts the session from
+          # his Personal Meeting Room / ad-hoc meeting, the recording's meeting id is
+          # NOT the webinar id and a strict lock finds nothing forever. The time
+          # window below identifies the session and excludes the Advanced Training.
+          MEETING_ID: ""
+          MATCH_FROM: "2026-08-06T16:30:00Z"
+          MATCH_TO: "2026-08-06T23:00:00Z"
+          WEBINAR_START: "2026-08-06T19:00:00+02:00"
+          # 0 = keep the schedule alive across webinar rounds (only the date env
+          # needs bumping next round; a forgotten bump still self-heals).
           STOP_AFTER_PUBLISH: "0"
-          WEBINAR_START: ""
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
-          RELEASE_TAG: ${{ matrix.tag }}
-          ASSET_NAME: ${{ matrix.asset }}
+          RELEASE_TAG: "opptak"
+          ASSET_NAME: "magnetmetoden-opptak.mp4"
           DRY_RUN: ${{ github.event.inputs.dry_run || '' }}
         run: python publish_recording.py
