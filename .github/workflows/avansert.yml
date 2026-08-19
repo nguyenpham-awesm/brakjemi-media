@@ -36,11 +36,11 @@ jobs:
           ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
-          MIN_DATE: "2026-08-09"
+          MIN_DATE: "2026-08-23"
           MEETING_ID: ""
-          MATCH_FROM: "2026-08-09T16:30:00Z"
-          MATCH_TO: "2026-08-09T23:00:00Z"
-          WEBINAR_START: "2026-08-09T19:00:00+02:00"
+          MATCH_FROM: "2026-08-23T16:30:00Z"
+          MATCH_TO: "2026-08-23T23:00:00Z"
+          WEBINAR_START: "2026-08-23T19:00:00+02:00"
           STOP_AFTER_PUBLISH: "0"
           GITHUB_WORKFLOW_REF: ${{ github.workflow_ref }}
           RELEASE_TAG: "avansert"
