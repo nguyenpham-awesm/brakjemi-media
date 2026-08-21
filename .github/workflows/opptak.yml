@@ -37,15 +37,15 @@ jobs:
           ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ZOOM_HOST: "WhNGXd5yTYOdiyFNONzpZA"
-          MIN_DATE: "2026-08-27"
+          MIN_DATE: "2026-08-20"
           # No strict MEETING_ID lock on purpose: if Fredrik starts the session from
           # his Personal Meeting Room / ad-hoc meeting, the recording's meeting id is
           # NOT the webinar id and a strict lock finds nothing forever. The time
           # window below identifies the session and excludes the Advanced Training.
           MEETING_ID: ""
-          MATCH_FROM: "2026-08-27T16:30:00Z"
-          MATCH_TO: "2026-08-27T23:00:00Z"
-          WEBINAR_START: "2026-08-27T19:00:00+02:00"
+          MATCH_FROM: "2026-08-20T16:30:00Z"
+          MATCH_TO: "2026-08-20T23:00:00Z"
+          WEBINAR_START: "2026-08-20T19:00:00+02:00"
           # 0 = keep the schedule alive across webinar rounds (only the date env
           # needs bumping next round; a forgotten bump still self-heals).
           STOP_AFTER_PUBLISH: "0"
